@@ -40,29 +40,41 @@ def title_parser(title):
         title_id, tape_info, title_ext = map(str.strip, title.split('-'))
     except ValueError, e:
         raise TitleRenameException('Improper file name format, invalid number of dashes.')
-
+        #title_id, tape_info, title_ext = ('', '', '')
 
     try:
         tape_number, side_number = TAPE_INFO_REGEX.match(tape_info).groups()
-    except TypeError, e:
+    except (TypeError, AttributeError), e:
         raise TitleRenameException('Tape name and side number are not formated correctly')
+        #tape_number, side_number = ('', '')
 
-
-    title_subchapter, file_extension = os.path.splitext(title_ext)
+    try:
+        title_subchapter, file_extension = os.path.splitext(title_ext)
+    except:
+        raise TitleRenameException('Problem splitting file subchapter from filetype.')
 
     last_space_index = title_subchapter.rfind(' ')
-    sub_chapter = title_subchapter[last_space_index:].strip()
 
     if last_space_index == -1:
         raise TitleRenameException('Unable to find a sub chapter')
+
+    sub_chapter = title_subchapter[last_space_index:].strip()
+
     two_digit_format = '{:02d}'
-    title_parts['title_id'] = two_digit_format.format(int(title_id))
-    title_parts['tape_number'] = two_digit_format.format(int(tape_number))
+
+    def integerize(num):
+        try:
+            return int(num)
+        except:
+            raise TitleRenameException('Could not convert {} to Integer'.format(num))
+
+    title_parts['title_id'] = two_digit_format.format(integerize(title_id))
+    title_parts['tape_number'] = two_digit_format.format(integerize(tape_number))
     title_parts['title'] = title_subchapter[:last_space_index].strip()
-    title_parts['sub_chapter'] = two_digit_format.format(int(sub_chapter))
+    title_parts['sub_chapter'] = two_digit_format.format(integerize(sub_chapter))
 
     try:
-        title_parts['side_id'] = ('A', 'B')[int(side_number) - 1]
+        title_parts['side_id'] = ('_1_', '_2_')[integerize(side_number) - 1]
     except IndexError, e:
         raise TitleRenameException('The side number is not 1 or 2')
 
