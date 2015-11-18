@@ -1,5 +1,6 @@
 import re
 import os
+import sys
 
 
 TAPE_INFO_REGEX = re.compile(r'^Tape(\d+)\s+Side(\d)$')
@@ -25,6 +26,7 @@ def filenamer(new_file):
 
 def title_parser(title):
     '''Takes a title and returns it's parts'''
+
     title_parts = {
         'title_id': None,
         'tape_number': None,
@@ -49,15 +51,15 @@ def title_parser(title):
     title_subchapter, file_extension = os.path.splitext(title_ext)
 
     last_space_index = title_subchapter.rfind(' ')
-    sub_chapter = int(title_subchapter[last_space_index:].strip())
+    sub_chapter = title_subchapter[last_space_index:].strip()
 
     if last_space_index == -1:
         raise TitleRenameException('Unable to find a sub chapter')
-
-    title_parts['title_id'] = title_id
-    title_parts['tape_number'] = tape_number
+    two_digit_format = '{:02d}'
+    title_parts['title_id'] = two_digit_format.format(int(title_id))
+    title_parts['tape_number'] = two_digit_format.format(int(tape_number))
     title_parts['title'] = title_subchapter[:last_space_index].strip()
-    title_parts['sub_chapter'] = '{:02d}'.format(sub_chapter)
+    title_parts['sub_chapter'] = two_digit_format.format(int(sub_chapter))
 
     try:
         title_parts['side_id'] = ('A', 'B')[int(side_number) - 1]
@@ -69,4 +71,5 @@ def title_parser(title):
     return title_parts
 
 if __name__ == '__main__':
-    rename_files('/Volumes/PENDRIVE/LRH_BE_normalized_Chapterized')
+    path_to_files = '/Volumes/PENDRIVE/LRH_BE_normalized_Chapterized'
+    sys.exit(rename_files(path_to_files))
